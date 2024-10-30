@@ -14,3 +14,4 @@ class Employee(Base):
     date_of_joining = Column(Date)
     gender = Column(String(6))
     user_id = Column(Integer)
+    is_guest=Column(Integer)

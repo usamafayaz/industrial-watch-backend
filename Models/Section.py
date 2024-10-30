@@ -7,3 +7,4 @@ class Section(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(25))
     status = Column(Integer)
+    is_sepecial= Column(Integer)

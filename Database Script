@@ -31,7 +31,18 @@ CREATE TABLE Stock(
 	purchased_date date,
 );
 
--- 5. Create Batch Table
+
+-- 5. Create ProductLink Table
+
+CREATE TABLE ProductLink(
+	id int identity(1,1) primary key,
+	packs_per_batch int,
+	piece_per_pack int,
+	rejection_tolerance float,
+	product_number VARCHAR(40) foreign key references Product(product_number)
+);
+
+-- 6. Create Batch Table
 
 CREATE TABLE Batch (
     batch_number VARCHAR(40) not null PRIMARY KEY,
@@ -41,15 +52,7 @@ CREATE TABLE Batch (
 	defected_pieces int
 );
 
--- 6. Create ProductLink Table
 
-CREATE TABLE ProductLink(
-	id int identity(1,1) primary key,
-	packs_per_batch int,
-	piece_per_pack int,
-	rejection_tolerance float,
-	product_number VARCHAR(40) foreign key references Product(product_number)
-);
 
 -- 7. Create StockInBatch Table
 create table StockInBatch(
@@ -189,6 +192,3 @@ CREATE TABLE ViolationImages(
 	FOREIGN KEY (violation_id) REFERENCES Violation(id),
 	capture_time Time
 );
-
-------------------------
-
