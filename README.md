@@ -33,28 +33,42 @@ This project is a group effort with multiple front-end implementations to ensure
 - **iOS**: Native iOS application.
 ## Installation and Setup
 
-1. Clone the repository:
+Requires Python 3.11, Docker, and the Microsoft ODBC Driver 18 for SQL Server
+(`brew install msodbcsql18` on macOS).
+
+1. Start SQL Server in Docker:
     ```bash
-    git clone https://github.com/usamafayaz/industrial-watch-backend.git
+    docker run -d --name industrialwatch-sql -e ACCEPT_EULA=Y \
+      -e 'MSSQL_SA_PASSWORD=<your-password>' -p 1433:1433 \
+      mcr.microsoft.com/mssql/server:2022-latest
     ```
 
-2. Navigate to the project directory:
+2. Create the schema and seed data (rules, job roles, `admin`/`admin` login):
     ```bash
-    cd industrial-watch-backend
+    SQLCMD="docker exec -i industrialwatch-sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P <your-password> -C"
+    $SQLCMD < "Database Script" && $SQLCMD < seed.sql
     ```
 
-3. Install Python dependencies:
+3. Configure environment variables:
     ```bash
-    pip install -r requirements.txt
+    cp .env.example .env   # then set DB_PASSWORD
     ```
 
-4. Configure environment variables:
-    - Create a `.env` file and add the necessary configurations.
-
-5. Start the server:
+4. Install Python dependencies:
     ```bash
-    python app.py
+    python3.11 -m venv .venv
+    .venv/bin/pip install -r requirements.txt
     ```
+
+5. Start the server (listens on port 5000):
+    ```bash
+    .venv/bin/python route.py
+    ```
+
+### Model files
+`trained_models/` needs `disk_model.pt`, `mobile_detection.pt`, `cigarette_detection.pt`,
+`bottle_defect.pt`, `textile_defect_detection.pt` and `side_cut_model.pt`. The last three
+were never committed to git, so bottle, textile and multi-angle defect detection won't work without them.
 
 ## Contact
 For any inquiries or support, please contact [abdullahmustafa3607@gmail.com] or [usama.fayyaz157@gmail.com].

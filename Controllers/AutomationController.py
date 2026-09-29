@@ -90,10 +90,10 @@ def detect_employee_violation(file_path, section_id):
 def predict_with_model(img, model, confidence):
     if confidence:
         results = model.predict(img, classes=[0, 67], save=True, imgsz=640, show_boxes=True, show_labels=True,
-                                show=True, conf=confidence)
+                                show=False, conf=confidence)
     else:
         results = model.predict(img, classes=[0, 67], save=True, imgsz=640, show_boxes=True, show_labels=True,
-                                show=True)
+                                show=False)
 
     class_id = None
     for result in results:
@@ -108,7 +108,8 @@ def predict_with_model(img, model, confidence):
 
 
 def apply_detection_model(video_path, model_path, employee_id, detection_class_id, rule_id, result_queue, confidence):
-    handle = cv.VideoCapture(video_path)
+    timeIntervals = {"start_time": None, "end_time": None}
+    handle = open_video(video_path)
     model_path = os.path.abspath(model_path)
     model = YOLO(model_path)
 
@@ -164,6 +165,10 @@ def apply_detection_model(video_path, model_path, employee_id, detection_class_i
     handle.release()
 
     print("Frames saved successfully.")
+    if total_time == 0:
+        # Nothing held for a full second, so there is no violation to record
+        result_queue.put((rule_id, total_time))
+        return
     violation_flag = get_violation(employee_id, rule_id)
     if violation_flag is not False:
         with DBHandler.return_session() as session:
@@ -302,7 +307,8 @@ def get_violation(employee_id, rule_id):
 
 
 def sitting_detection(video_path, employee_id, rule_id, result_queue):
-    handle = cv.VideoCapture(video_path)
+    timeIntervals = {"start_time": None, "end_time": None}
+    handle = open_video(video_path)
     violation_image_path = f'ViolationImages/{employee_id}'
     if not os.path.exists(violation_image_path):
         os.makedirs(violation_image_path)
@@ -353,6 +359,10 @@ def sitting_detection(video_path, employee_id, rule_id, result_queue):
     handle.release()
 
     print("Frames saved successfully.")
+    if total_time == 0:
+        # Nothing held for a full second, so there is no violation to record
+        result_queue.put((rule_id, total_time))
+        return
     violation_flag = get_violation(employee_id, rule_id)
     if violation_flag is not False:
         with DBHandler.return_session() as session:
@@ -393,13 +403,20 @@ def sitting_detection(video_path, employee_id, rule_id, result_queue):
 
 
 def is_industry_employee(file_path, is_video, section_id_for_special_section):
+    facerecoganizer = FaceRecognition()
+    person = None
+    frame = None
     if is_video:
-        image = extract_frame_from(file_path)
+        # Try frames from the first few seconds until a known face is found
+        for frame in extract_frames_from(file_path):
+            person = facerecoganizer.predict(frame)
+            if person is not None and person != 'No face detected':
+                break
+        image = frame
     else:
         image = file_path
-    if image is not None:
-        facerecoganizer = FaceRecognition()
         person = facerecoganizer.predict(image)
+    if image is not None:
         print("Person ID", person)
         if person is not None and person != 'No face detected':
             print(f'Employee ID of Detected Person = {person[0]}')
@@ -434,9 +451,30 @@ def is_industry_employee(file_path, is_video, section_id_for_special_section):
         return None
 
 
+def open_video(video_path):
+    handle = cv.VideoCapture(video_path)
+    # Apply the phone's rotation metadata so portrait videos are upright
+    handle.set(cv.CAP_PROP_ORIENTATION_AUTO, 1)
+    return handle
+
+
+def extract_frames_from(video_path, seconds=4, per_second=2):
+    handle = open_video(video_path)
+    try:
+        fps = handle.get(cv.CAP_PROP_FPS) or 30
+        for n in range(seconds * per_second):
+            handle.set(cv.CAP_PROP_POS_FRAMES, int(n * fps / per_second))
+            ret, frame = handle.read()
+            if not ret:
+                break
+            yield frame
+    finally:
+        handle.release()
+
+
 def extract_frame_from(video_path):
     try:
-        cam = cv.VideoCapture(video_path)
+        cam = open_video(video_path)
         if not cam.isOpened():
             return None
 
