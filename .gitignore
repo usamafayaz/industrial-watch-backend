@@ -13,5 +13,18 @@ __pycache__/
 # Ignore directories
 /defected_items
 #/EmployeeImages
-/DBHandler.py
-DBHandler.py
+# Python virtualenv
+.venv/
+
+# Runtime output
+temp_videos/*.mp4
+runs/
+# macOS
+.DS_Store
+
+# Violation evidence created at runtime (sample images in the folder root stay tracked)
+ViolationImages/*/
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore

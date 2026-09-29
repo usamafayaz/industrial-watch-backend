@@ -346,7 +346,7 @@ def get_all_employees(section_id, ranking_required):
                     'section_name': employee[2],
                     'job_role': employee[3],
                     'productivity': employee[4],
-                    'image': image_urls[0]
+                    'image': image_urls[0] if image_urls else None
                 })
             return jsonify(serialize), 200
         except Exception as e:
@@ -926,7 +926,7 @@ def get_all_guest():
                 serialize.append({
                     'employee_id': employee.id,
                     'name': employee.name,
-                    'image': image_urls[0]
+                    'image': image_urls[0] if image_urls else None
                 })
             return jsonify(serialize), 200
         except Exception as e:

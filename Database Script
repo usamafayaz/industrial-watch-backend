@@ -1,5 +1,7 @@
 create database IndustrialWatchFYP
+GO
 use IndustrialWatchFYP
+GO
 ---1. Creating RawMaterial Table for Violations
 CREATE TABLE RawMaterial (
 	id INT not null identity(1,1) PRIMARY KEY,
@@ -65,7 +67,8 @@ create table StockInBatch(
 CREATE TABLE Section (
     id INT not null identity(1,1) PRIMARY KEY,
     name VARCHAR(25),
-	status int
+	status int,
+    is_sepecial int default 0
 );
 
 ------------------------
@@ -121,6 +124,7 @@ CREATE TABLE Employee (
     date_of_joining DATE,
 	gender VARCHAR(6),
     user_id INT,
+    is_guest INT default 0,
     FOREIGN KEY (user_id) REFERENCES Users(id)
 );
 
