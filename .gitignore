@@ -24,7 +24,3 @@ runs/
 
 # Violation evidence created at runtime (sample images in the folder root stay tracked)
 ViolationImages/*/
-branch_structure.json
-temp_auto_push.bat
-temp_interactive_push.bat
-.gitignore
